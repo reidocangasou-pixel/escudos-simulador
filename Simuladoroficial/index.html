@@ -24,7 +24,6 @@
             width:70px; 
             height:70px; 
             object-fit:contain; 
-            /* Adicionado um fundo claro para logos com transparência não sumirem */
             background: rgba(255,255,255,0.05);
             border-radius:6px; 
             padding:4px; 
@@ -91,18 +90,17 @@
     </div>
 <script>
 /*
-  Observação: Este HTML carrega os escudos a partir de uma pasta local "logos/".
-  Para que funcione, você precisa primeiro executar o script Python "baixador.py" que foi fornecido.
-  Ele irá criar a pasta "logos/" e baixar todos os escudos oficiais para dentro dela.
-  Este processo só precisa ser feito uma vez.
+  IMPORTANTE: Antes de colar no Blogger, você PRECISA substituir 
+  o valor da constante LOGOS_BASE_URL abaixo pela URL base dos seus 
+  escudos hospedados no GitHub (veja o Passo 1 do guia).
 */
+const LOGOS_BASE_URL = "https://github.com/reidocangasou-pixel/escudos-simulador/blob/main/Simuladoroficial";
+
 const teams = [
   "Atlético-MG","Bahia","Botafogo","Ceará","Corinthians","Cruzeiro","Flamengo","Fluminense",
   "Fortaleza","Juventude","Grêmio","Internacional","Mirassol","Palmeiras","RB Bragantino",
   "Santos","São Paulo","Sport","Vasco","Vitória"
 ].map(name => {
-    // Cria um 'slug' padronizado para mapear o nome do time para o nome do arquivo de imagem.
-    // Ex: "São Paulo" -> "sao-paulo.png"
     const slug = name.toLowerCase()
         .replace(/\s+br\b/g,'') 
         .replace(/[\s\.]+/g,'-')
@@ -110,7 +108,10 @@ const teams = [
         .replace(/[^a-z0-9\-]/g,'')
         .replace(/\-+/g,'-')
         .replace(/^\-|\-$/g,'');
-    return { name, slug, logo: `logos/${slug}.png` };
+    
+    // Constrói a URL completa para cada logo
+    return { name, slug, logo: `${LOGOS_BASE_URL}/${slug}.png` };
+
 }).sort((a,b) => a.name.localeCompare(b.name));
 
 const homeTeamSelect = document.getElementById('home-team');
@@ -137,7 +138,6 @@ function populateSelects(){
         awayTeamSelect.appendChild(o2);
     });
 
-    // Escolhe dois times aleatórios e diferentes para começar
     homeTeamSelect.selectedIndex = Math.floor(Math.random() * teams.length);
     do {
        awayTeamSelect.selectedIndex = Math.floor(Math.random() * teams.length);
@@ -163,13 +163,10 @@ function updateTeamInfo(){
 homeTeamSelect.addEventListener('change', updateTeamInfo);
 awayTeamSelect.addEventListener('change', updateTeamInfo);
 
-
-// --- SIMULAÇÃO DA PARTIDA (USANDO API) ---
 async function callGeminiAPI(prompt, schema, resultContainer, buttonEl) {
     resultContainer.innerHTML = '<div class="loader"></div>';
     if (buttonEl) buttonEl.disabled = true;
 
-    // A chave da API é inserida aqui. Mantenha em branco se estiver usando um proxy.
     const apiKey = ""; 
 
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
@@ -188,7 +185,6 @@ async function callGeminiAPI(prompt, schema, resultContainer, buttonEl) {
             body: JSON.stringify(payload) 
         });
         if (!response.ok) {
-            // Tenta ler a mensagem de erro da API para dar mais detalhes.
             const errorBody = await response.json();
             const errorMessage = errorBody?.error?.message || `Status: ${response.status}`;
             throw new Error(`Falha na chamada da API: ${errorMessage}`);
